@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English B2 Checklist</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f1117;
+      color: #e8e8f0;
+      min-height: 100vh;
+    }
+    #header {
+      background: linear-gradient(135deg, #1a1d2e, #12141f);
+      border-bottom: 1px solid #2a2d42;
+      padding: 44px 20px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .eyebrow { font-size: 10px; letter-spacing: .18em; color: #6c70a0; text-transform: uppercase; margin-bottom: 4px; }
+    h1 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 14px; }
+    .progress-row { display: flex; align-items: center; gap: 12px; }
+    .bar-wrap { flex: 1; height: 6px; border-radius: 99px; background: #1e2035; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#5b6af0,#9b6af0); transition: width .4s; }
+    .plabel { font-size: 12px; color: #9b9ec4; white-space: nowrap; }
+    .plabel b { color: #7c82f0; }
+    .filters { display: flex; gap: 8px; padding: 14px 20px 0; }
+    .fbtn {
+      padding: 8px 18px; border-radius: 99px; font-size: 13px; font-weight: 500;
+      background: #1e2035; color: #6c70a0; cursor: pointer;
+    }
+    .fbtn.on { background: #5b6af0; color: #fff; }
+    #list { padding: 12px 20px 60px; display: flex; flex-direction: column; gap: 8px; }
+    .item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px; border-radius: 12px;
+      border: 1px solid #1e2035; background: #14161f;
+      cursor: pointer;
+    }
+    .item.done { border-color: #2e3560; background: #161a2e; }
+    .box {
+      width: 24px; height: 24px; min-width: 24px; border-radius: 6px;
+      border: 2px solid #2a2d42; background: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .item.done .box { border-color: #5b6af0; background: #5b6af0; }
+    .lbl { flex: 1; font-size: 14px; font-weight: 500; color: #c8cbea; }
+    .item.done .lbl { color: #5a5e88; text-decoration: line-through; font-weight: 400; }
+    .bdg { font-size: 10px; font-weight: 600; letter-spacing: .06em; color: #3a3d58; text-transform: uppercase; }
+    .item.done .bdg { color: #5b6af0; }
+    .empty { text-align: center; color: #6c70a0; font-size: 14px; margin-top: 48px; }
+  </style>
+</head>
+<body>
+
+<div id="header">
+  <p class="eyebrow">English B2</p>
+  <h1>Topic Checklist</h1>
+  <div class="progress-row">
+    <div class="bar-wrap"><div class="bar-fill" id="bar" style="width:0%"></div></div>
+    <p class="plabel" id="plbl">0/62 — <b>0%</b></p>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="fbtn on" id="f-all" onclick="setFilter('all')">Todos</div>
+  <div class="fbtn" id="f-pending" onclick="setFilter('pending')">Pendientes</div>
+  <div class="fbtn" id="f-done" onclick="setFilter('done')">Hechos</div>
+</div>
+
+<div id="list"></div>
+
+<script>
+var topics = [
+  "Greetings and farewells","Telephone language","Present simple: affirmative",
+  "Action verbs","Present continuous","Means of transport","Stative verbs",
+  "Travel and transport","Listening comprehension","Interrogative pronouns",
+  "Present simple: negative","Past simple: regular affirmative",
+  "Past simple: irregular verbs","'To be going to + infinitive'",
+  "Uses of 'to be going to'","Time expressions","Typical expressions",
+  "Consonant sounds: /ʧ/ and /ʃ/","Dialogues","Past simple","Holidays",
+  "Talking about holidays","Talking about trips and holidays","Mediation",
+  "Present perfect","Present perfect vs. past simple",
+  "Present simple: interrogative and short answers",
+  "Present simple vs. Present continuous",
+  "Present continuous vs. 'Be going to'","Possessive pronouns",
+  "'There is' / 'there are'","Possessive adjectives","Can / Can't",
+  "The imperative","Vowel sounds: /i:/ and /i/","Talking about the weather",
+  "Descriptive texts","Brochures and leaflets","Past continuous",
+  "Everyday objects","Prepositions of movement","For / Since / Ago",
+  "'Have been' vs. 'have gone'","'How long does it take...?'",
+  "Clothes and accessories","Interviews","Agreeing with an opinion",
+  "Vowel sounds: /eɪ/ and /æ/","Fabrics","Vowel sounds: /ɑ:/ and /ə/",
+  "The use of 'yet' and 'already' in the present perfect",
+  "The use of 'ever' and 'never' in the present perfect",
+  "Quantifiers: too much / too many / not enough","Phrasal verbs",
+  "Housework activities","Shapes and materials",
+  "The use of 'just' in the present perfect",
+  "Indefinite pronouns: something, anything, nothing",
+  "Vowel sounds: /ɒ/ and /ɔ:/","Office objects","Relative pronouns","Exclamations"
+];
+
+var KEY = "eb2";
+var checked = {};
+var filter = "all";
+
+try { checked = JSON.parse(localStorage.getItem(KEY)||"{}"); } catch(e){}
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(checked)); }catch(e){} }
+
+function progress(){
+  var d = topics.filter(function(t){return checked[t];}).length;
+  var total = topics.length;
+  var p = Math.round(d/total*100);
+  document.getElementById("bar").style.width = p+"%";
+  document.getElementById("plbl").innerHTML = d+"/"+total+" — <b>"+p+"%</b>";
+}
+
+function setFilter(f){
+  filter = f;
+  ["all","pending","done"].forEach(function(x){
+    document.getElementById("f-"+x).className = "fbtn"+(x===f?" on":"");
+  });
+  render();
+}
+
+function toggle(t){
+  checked[t] = !checked[t];
+  save();
+  progress();
+  render();
+}
+
+function render(){
+  var list = document.getElementById("list");
+  var vis = topics.filter(function(t){
+    if(filter==="done") return checked[t];
+    if(filter==="pending") return !checked[t];
+    return true;
+  });
+  if(!vis.length){
+    list.innerHTML = '<p class="empty">'+(filter==="done"?"Aún no marcaste nada.":"¡Todo listo! 🎉")+'</p>';
+    return;
+  }
+  list.innerHTML = "";
+  vis.forEach(function(t){
+    var d = !!checked[t];
+    var el = document.createElement("div");
+    el.className = "item"+(d?" done":"");
+    el.innerHTML =
+      '<div class="box">'+(d?'<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')+'</div>'+
+      '<span class="lbl">'+t+'</span>'+
+      '<span class="bdg">'+(d?"Hecho":"Pendiente")+'</span>';
+    el.onclick = function(){ toggle(t); };
+    list.appendChild(el);
+  });
+}
+
+progress();
+render();
+</script>
+</body>
+</html>
